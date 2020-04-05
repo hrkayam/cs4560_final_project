@@ -2,12 +2,10 @@ import nltk
 import praw
 import string
 
-
-
 class RedditScraper(object):
 
-    def __init__(self, subreddit = "news", length_cap = 100, hot_cap = 10, filename="corpus.txt"):
-        self.subreddit = subreddit
+    def __init__(self, subreddits = ["askreddit"], length_cap = 100, hot_cap = 1000, filename="corpus.txt"):
+        self.subreddits = subreddits
         self.length_cap = length_cap
         self.hot_cap = hot_cap
         self.filename = filename
@@ -26,7 +24,7 @@ class RedditScraper(object):
                         words[-1] = words[-1] + word
                     else:
                         words.append(word)
-                if word is "\'":
+                if len(words) > 0 and word is "\'":
                     words[-1] = words[-1] + word
             # words = [word.lower() for word in tokenized_sentence if word.isalpha()]
             tokenized_sentence_list.append(words)
@@ -34,13 +32,22 @@ class RedditScraper(object):
 
     def scrape(self):
         reddit = praw.Reddit(client_id='WVIjShUtj9WN4Q', client_secret='QHArhM9JsfcnFC3wj6cUr4ImshA', user_agent='CS 4650 NLP Project Kayam Tamhankar')
-        neutral_posts = reddit.subreddit(self.subreddit).hot(limit=self.hot_cap)
-        f = open(self.filename, "w")
-        for post in neutral_posts:
-            sentence_list, tokenized_sentence_list = self.parse(post.selftext)
-
-            for i in range(len(sentence_list)):
-                for word in tokenized_sentence_list[i]:
-                    f.write(word + " ")
-                f.write("\n")
+        f = open(self.filename, "a")
+        for sr in self.subreddits:
+            print(sr)
+            count = 0
+            for comment in reddit.subreddit(sr).stream.comments():
+                if count > 10000:
+                    break
+                if count % 200 == 0:
+                    print(count)
+                sentence_list, tokenized_sentence_list = self.parse(comment.body)
+                count += 1
+                for i in range(len(sentence_list)):
+                    for word in tokenized_sentence_list[i]:
+                        try:
+                            f.write(word + " ")
+                        except UnicodeEncodeError:
+                            f.write("[UNKNOWN]" + " ")
+                    f.write("\n")
         f.close()
