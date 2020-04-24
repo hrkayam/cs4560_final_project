@@ -4,7 +4,7 @@ import string
 
 class RedditScraper(object):
 
-    def __init__(self, subreddits = ["askreddit"], length_cap = 100, hot_cap = 1000, filename="corpus.txt"):
+    def __init__(self, subreddits = ["AskReddit"], length_cap = 100, hot_cap = 1000, filename="corpus.txt"):
         self.subreddits = subreddits
         self.length_cap = length_cap
         self.hot_cap = hot_cap
@@ -37,6 +37,32 @@ class RedditScraper(object):
             print(sr)
             count = 0
             for comment in reddit.subreddit(sr).stream.comments():
+                if count > 10000:
+                    break
+                if count % 200 == 0:
+                    print(count)
+                sentence_list, tokenized_sentence_list = self.parse(comment.body)
+                count += 1
+                for i in range(len(sentence_list)):
+                    for word in tokenized_sentence_list[i]:
+                        try:
+                            f.write(word + " ")
+                        except UnicodeEncodeError:
+                            f.write("[UNKNOWN]" + " ")
+                    f.write("\n")
+        f.close()
+
+    def scrape_user_comments(self, username):
+        reddit = praw.Reddit(client_id='WVIjShUtj9WN4Q', client_secret='QHArhM9JsfcnFC3wj6cUr4ImshA', user_agent='CS 4650 NLP Project Kayam Tamhankar')
+
+        user = reddit.redditor(username)
+
+        f = open("user_" + username, "w")
+        f.write(username + "\n")
+        for sr in self.subreddits:
+            print(sr)
+            count = 0
+            for comment in user.comments.new(limit=None):
                 if count > 10000:
                     break
                 if count % 200 == 0:

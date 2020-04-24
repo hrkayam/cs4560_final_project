@@ -97,6 +97,15 @@ model.add(GRU(150, recurrent_dropout=0.1, dropout=0.1))
 model.add(Dense(vocab, activation='softmax'))
 print(model.summary())
 
+checkpoint_path = "cp-{epoch:04d}.ckpt"
+checkpoint_dir = os.path.dirname(checkpoint_path)
+
+cp_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_path,
+    verbose=1,
+    save_weights_only=True,
+    period=5)
+
 # compile the model
 model.compile(loss='categorical_crossentropy', metrics=['acc'], optimizer='adam')
 # fit the model
@@ -105,4 +114,4 @@ model.fit(X_tr, y_tr, epochs=20, verbose=2, validation_data=(X_val, y_val))
 input_text = "I live in the middle of nowhere and under normal circumstances would have no qualms about driving miles for a good meal out but it seems a bit excessive for takeout especially with the whole stay at home stuff"
 print(len(input_text))
 
-print(generate_sequence(model, mapping, 30, inp.lower(), 15))
+print(generate_sequence(model, mapping, 30, input_text.lower(), 50  ))
