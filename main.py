@@ -7,6 +7,7 @@ from keras.models import Sequential
 from keras.layers import LSTM, Dense, GRU, Embedding
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.model_selection import train_test_split
+import os
 
 
 def text_cleaner(text):
@@ -93,18 +94,19 @@ print('Train shape:', X_tr.shape, 'Val shape:', X_val.shape)
 #define model
 model = Sequential()
 model.add(Embedding(vocab, 50, input_length=30, trainable=True))
-model.add(GRU(150, recurrent_dropout=0.1, dropout=0.1))
+model.add(LSTM(150, recurrent_dropout=0.1, dropout=0.1))
 model.add(Dense(vocab, activation='softmax'))
+
 print(model.summary())
 
-checkpoint_path = "cp-{epoch:04d}.ckpt"
-checkpoint_dir = os.path.dirname(checkpoint_path)
+# checkpoint_path = "cp-{epoch:04d}.ckpt"
+# checkpoint_dir = os.path.dirname(checkpoint_path)
 
-cp_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath=checkpoint_path,
-    verbose=1,
-    save_weights_only=True,
-    period=5)
+# cp_callback = tf.keras.callbacks.ModelCheckpoint(
+#     filepath=checkpoint_path,
+#     verbose=1,
+#     save_weights_only=True,
+#     period=5)
 
 # compile the model
 model.compile(loss='categorical_crossentropy', metrics=['acc'], optimizer='adam')
