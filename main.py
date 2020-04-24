@@ -4,10 +4,12 @@ import re
 from keras.utils import to_categorical
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
-from keras.layers import LSTM, Dense, GRU, Embedding
+from keras.layers import LSTM, Dense, GRU, Embedding, Dropout, Activation
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.model_selection import train_test_split
 import os
+import tensorflow as tf
+import winsound
 
 
 def text_cleaner(text):
@@ -91,29 +93,46 @@ X_tr, X_val, y_tr, y_val = train_test_split(X, y, test_size=0.1, random_state=42
 
 print('Train shape:', X_tr.shape, 'Val shape:', X_val.shape)
 
+rate = 0.4
+hidden_size = 50
+
 #define model
 model = Sequential()
-model.add(Embedding(vocab, 50, input_length=30, trainable=True))
-model.add(LSTM(150, recurrent_dropout=0.1, dropout=0.1))
+model.add(Embedding(vocab, hidden_size, input_length=30, trainable=True))
+model.add(LSTM(hidden_size, recurrent_dropout=0.1, dropout=0.1, return_sequences=True))
+model.add(Dense(vocab, activation='tanh'))
+model.add(LSTM(hidden_size, recurrent_dropout=0.1, dropout=0.1, return_sequences=False))
+# model.add(LSTM(150, recurrent_dropout=0.2, dropout=0.2))
+model.add(Dense(vocab, activation='tanh'))
 model.add(Dense(vocab, activation='softmax'))
 
-print(model.summary())
+model.summary()
 
-# checkpoint_path = "cp-{epoch:04d}.ckpt"
-# checkpoint_dir = os.path.dirname(checkpoint_path)
+checkpoint_path = "cp-{epoch:04d}.ckpt"
+checkpoint_dir = os.path.dirname(checkpoint_path)
 
-# cp_callback = tf.keras.callbacks.ModelCheckpoint(
-#     filepath=checkpoint_path,
-#     verbose=1,
-#     save_weights_only=True,
-#     period=5)
+cp_callback = ModelCheckpoint(
+    filepath=checkpoint_path,
+    verbose=1,
+    save_best_only=1,
+    save_weights_only=True,
+    period=5)
 
 # compile the model
 model.compile(loss='categorical_crossentropy', metrics=['acc'], optimizer='adam')
 # fit the model
-model.fit(X_tr, y_tr, epochs=20, verbose=2, validation_data=(X_val, y_val))
+model.fit(X_tr, y_tr, epochs=30, verbose=2, validation_data=(X_val, y_val), callbacks=[cp_callback])
 
-input_text = "I live in the middle of nowhere and under normal circumstances would have no qualms about driving miles for a good meal out but it seems a bit excessive for takeout especially with the whole stay at home stuff"
+frequency = 2500  # Set Frequency To 2500 Hertz
+duration = 500  # Set Duration To 1000 ms == 1 second
+winsound.Beep(frequency, duration)
+
+model_ckpt2 = model
+model_ckpt2.load_weights("cp-0020.ckpt")
+
+input_text = "Long ago the four nations"
 print(len(input_text))
 
+outputs = [layer.output for layer in model_ckpt2.layers]
 print(generate_sequence(model, mapping, 30, input_text.lower(), 50  ))
+print(outputs)
