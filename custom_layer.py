@@ -1,6 +1,7 @@
 import keras
 from keras import backend as K
 
+
 class UserEmbedCell(keras.layers.Layer):
 
     def __init__(self, units, user_embedding, **kwargs):

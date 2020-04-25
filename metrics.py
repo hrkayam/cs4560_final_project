@@ -6,7 +6,7 @@ word_counts = {}
 word_prob = {}
 total_words = 0
 
-with open('corpus.txt','r') as file:
+with open('small_corpus_tagged.txt','r') as file:
     for line in file:
         for word in line.split():
             total_words += 1
@@ -17,7 +17,7 @@ with open('corpus.txt','r') as file:
 for word in word_counts:
     word_prob[word] = word_counts[word] / total_words
 
-with open('corpus.txt','r') as file:
+with open('small_corpus_tagged.txt','r') as file:
     exponent = 0
     for line in file:
         sentence_prob = 1

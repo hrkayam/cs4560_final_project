@@ -4,13 +4,12 @@ import re
 from keras.utils import to_categorical
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
-from keras.layers import LSTM, Dense, GRU, Embedding, Dropout, Activation, RNN, concatenate, multiply, reshape
+from keras.layers import LSTM, Dense, GRU, Embedding, Dropout, Activation
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from sklearn.model_selection import train_test_split
 import os
 import tensorflow as tf
 import winsound
-from custom_layer import UserEmbedCell
 
 
 def text_cleaner(text):
@@ -66,6 +65,8 @@ def generate_sequence(model, mapping, seq_length, seed_text, n_chars):
 		in_text += char
 	return in_text
 
+
+
 file = open("smallcorpus.txt", "r")
 text_data =  file.read()
 
@@ -94,26 +95,13 @@ print('Train shape:', X_tr.shape, 'Val shape:', X_val.shape)
 
 
 hidden_size = 50
-num_users = 100
-user_vector = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0]
 
-#define user embedding matrix [len(user_vector) x 30]
-first = Sequential()
-first.add(Embedding(vocab, 30, input_length=30, trainable=True))
-
-#embed characters and pass through a custom LSTM layer to add user embedding to bias
-second = Sequential()
-dense_2 = Embedding(len(user_vector), 30, trainable=True)
-second.add(dense_2)
-weights = dense_2.get_weights()
-user_embedding = np.dot(user_vector, weights[0])
-second.add(RNN(UserEmbedCell(30, user_embedding)))
-second.add(Activation('tanh'))
-second.add(reshape(30, 30))
-
+#define model
 model = Sequential()
-merged = concatenate([first.outputs[0], second.outputs[0]], axis=0)
-
+model.add(Embedding(vocab, 50, input_length=30, trainable=True))
+model.add(LSTM(128, recurrent_dropout=0.1, dropout=0.1))
+model.add(Dense(vocab))
+model.add(Activation('softmax'))
 
 # model = Sequential()
 # model.add(Embedding(vocab, 50, input_length=30, trainable=True))
