@@ -87,7 +87,6 @@ def generate_sequence(model, mapping, seq_length, seed_text, n_chars):
         for char, index in mapping.items():
             if index == yhat:
                 out_char = char
-                print(out_char)
                 break
         # append to input
         in_text += char
@@ -210,7 +209,7 @@ cp_callback = ModelCheckpoint(
 # compile the model
 model.compile(loss='categorical_crossentropy', metrics=['acc'], optimizer='adam')
 # fit the model
-#model.fit(X_tr, y_tr, epochs=20, verbose=2, validation_data=(X_val, y_val), callbacks=[cp_callback])
+model.fit(X_tr, y_tr, epochs=20, verbose=2, validation_data=(X_val, y_val), callbacks=[cp_callback])
 
 frequency = 2500  # Set Frequency To 2500 Hertz
 duration = 500  # Set Duration To 1000 ms == 1 second
@@ -219,9 +218,11 @@ winsound.Beep(frequency, duration)
 model_ckpt2 = model
 model_ckpt2.load_weights("cp-0020.ckpt")
 
-input_text = "I really like that "
+input_text = "I hate how"
 print(len(input_text))
 
+output_length = 20
+
 outputs = [layer.output for layer in model_ckpt2.layers]
-print(generate_sequence(model, mapping, 30, input_text.lower(), 50))
+print(generate_sequence(model, mapping, 30, input_text.lower(), output_length))
 print(outputs)
