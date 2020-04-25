@@ -3,4 +3,4 @@ from ntlk_reddit_scraper import RedditScraper
 # import string
 
 rs = RedditScraper()
-rs.scrape_user_comments("screenhunter372")
+rs.scrape()
